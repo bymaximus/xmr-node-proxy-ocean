@@ -277,7 +277,7 @@ function Pool(poolData){
         let job = this.poolJobs[worker.id].toarray().filter(function (job) {
             return job.id === shareData.btID;
         })[0];
-        if (job){
+        if (job){			
             this.sendData('submit', {
                 job_id: job.masterJobID,
                 nonce: shareData.nonce,

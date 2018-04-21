@@ -22,7 +22,11 @@ var $disp = $('#displaytable').DataTable({
 	columns: [
 		{ title: "Name", data: "name" },
 		{ title: "Hashrate", data: "hashrate" },
-		{ title: "Difficulty", data: "diff" }
+		{ title: "Difficulty", data: "diff" },
+		{ title: "Shares", data: "shares" },
+		{ title: "Blocks", data: "blocks" },
+		{ title: "Hashes", data: "hashes" },
+		{ title: "Pool", data: "pool" }
 	],
 	footerCallback: function(row, data, start, end, display) {
 		var api = this.api(), data;
@@ -116,7 +120,13 @@ function parseJSON(json) {
 			miner = worker[minerid];
 			if(miner.length == 0) continue;
 			name = (miner.hasOwnProperty('password') && miner["password"].length > 0) ? miner["password"] : miner["id"];
-			row = { name: name, hashrate: miner["avgSpeed"], diff: miner["diff"] }
+			row = { 
+			name: name, hashrate: miner["avgSpeed"], diff: miner["diff"],
+			shares: (miner.hasOwnProperty('shares') ? miner['shares'] : 0),
+			blocks: (miner.hasOwnProperty('blocks') ? miner['blocks'] : 0),
+			hashes: (miner.hasOwnProperty('hashes') ? miner['hashes'] : 0),
+			pool: (miner.hasOwnProperty('pool') ? miner['pool'] : 0)
+			};
 			res.push(row);
 		}
 	}
