@@ -1044,7 +1044,9 @@ function activateHTTP() {
 		} else if(req.url.substring(0, 5) == "/pools") {
 			fs.readFile('pools.json', 'utf8', (err, data) => {
 				if(err) {
-					res.writeHead(503);
+					//res.writeHead(503);
+					res.writeHead(200, {'Content-type':'application/json'});
+					res.write("{}\r\n");					
 				} else {
 					res.writeHead(200, {'Content-type':'application/json'});
 					res.write(data + "\r\n");
