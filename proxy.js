@@ -2,6 +2,7 @@
 const cluster = require('cluster');
 const net = require('net');
 const tls = require('tls');
+const http = require('http');
 const fs = require('fs');
 const async = require('async');
 const uuidV4 = require('uuid/v4');
@@ -462,6 +463,16 @@ function balanceWorkers(){
             }
         }
     }
+	
+    // here we do a bit of a hack and "cache" the activeWorkers
+    // this file is parsed for the http://host/json endpoint
+    if(global.config.httpEnable) {
+        fs.writeFile("pools.json", JSON.stringify(poolStates), function(err) {
+            if(err)
+                return console.log(err);
+        });
+    }	
+	
     /*
     poolStates now contains the hashrate per pool.  This can be compared against minerStates/hashRate to determine
     the approximate hashrate that should be moved between pools once the general hashes/second per pool/worker
@@ -581,6 +592,14 @@ function balanceWorkers(){
 }
 
 function enumerateWorkerStats(){
+    // here we do a bit of a hack and "cache" the activeWorkers
+    // this file is parsed for the http://host/json endpoint
+    if(global.config.httpEnable) {
+        fs.writeFile("workers.json", JSON.stringify(activeWorkers), function(err) {
+            if(err)
+                return console.log(err);
+        });
+    }	
     let stats, global_stats = {miners: 0, hashes: 0, hashRate: 0, diff: 0};
     for (let poolID in activeWorkers){
         if (activeWorkers.hasOwnProperty(poolID)){
@@ -1004,6 +1023,44 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
     }
 }
 
+function activateHTTP() {
+	var jsonServer = http.createServer((req, res) => {
+		if(req.url == "/") {
+			res.writeHead(200, {'Content-type':'text/html'});
+			fs.readFile('index.html', 'utf8', function(err, contents) {
+				res.write(contents);
+				res.end();
+			})
+		} else if(req.url.substring(0, 5) == "/json") {
+			fs.readFile('workers.json', 'utf8', (err, data) => {
+				if(err) {
+					res.writeHead(503);
+				} else {
+					res.writeHead(200, {'Content-type':'application/json'});
+					res.write(data + "\r\n");
+				}
+				res.end();
+			});
+		} else if(req.url.substring(0, 5) == "/pools") {
+			fs.readFile('pools.json', 'utf8', (err, data) => {
+				if(err) {
+					res.writeHead(503);
+				} else {
+					res.writeHead(200, {'Content-type':'application/json'});
+					res.write(data + "\r\n");
+				}
+				res.end();
+			});			
+		} else {
+			res.writeHead(404);
+			res.end();
+		}
+	});
+
+	jsonServer.listen(global.config.httpPort || "8080", global.config.httpAddress || "localhost")
+}
+
+
 function activatePorts() {
     /*
      Reads the current open ports, and then activates any that aren't active yet
@@ -1235,4 +1292,6 @@ if (cluster.isMaster) {
     }, 10000);
     setInterval(checkActivePools, 90000);
     activatePorts();
+    if(global.config.httpEnable)
+        activateHTTP();	
 }
