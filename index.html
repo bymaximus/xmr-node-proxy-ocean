@@ -115,7 +115,7 @@ function parseJSON(json) {
 		for(var minerid in worker) {
 			miner = worker[minerid];
 			if(miner.length == 0) continue;
-			name = (miner["password"].length > 0) ? miner["password"] : miner["id"];
+			name = (miner.hasOwnProperty('password') && miner["password"].length > 0) ? miner["password"] : miner["id"];
 			row = { name: name, hashrate: miner["avgSpeed"], diff: miner["diff"] }
 			res.push(row);
 		}
@@ -123,26 +123,27 @@ function parseJSON(json) {
 	return res;
 }
 function parseJSONPools(json) {
-	var res = [];
-	var pool, keys, poolRow, row;
-	for(var coin in json) {
-		pool = json[coin];
-		if(! pool) continue;
-		if (pool.hasOwnProperty('percentage')) {
-			delete pool.percentage;
-		}
-		if (pool.hasOwnProperty('devPool')) {
-			delete pool.devPool;
-		}	
-		keys = Object.keys(pool);
-		if (! keys || ! keys.length) continue;		
-		for(var poolName in keys) {
-			poolRow = pool[poolName];			
-			row = { name: poolName, hashrate: poolRow["hashrate"], miners: poolRow["miners"].length }
-			res.push(row);
-		}
-	}
-	return res;
+        var res = [];
+        var pool, keys, poolRow, row, poolName;
+        for(var coin in json) {
+                pool = json[coin];
+                if(! pool) continue;
+                if (pool.hasOwnProperty('percentage')) {
+                        delete pool.percentage;
+                }
+                if (pool.hasOwnProperty('devPool')) {
+                        delete pool.devPool;
+                }
+                keys = Object.keys(pool);
+c               if (! keys || ! keys.length) continue;
+                for(var j = 0; j < keys.length; j++) {
+                        poolName = keys[j];
+                        poolRow = pool[poolName];
+						row = { name: poolName, hashrate: poolRow["hashrate"], miners: (poolRow.hasOwnProperty('miners') ? Object.keys(poolRow["miners"]).length : 0) };
+                        res.push(row);
+                }
+        }
+        return res;
 }
 })(jQuery)
 		</script>

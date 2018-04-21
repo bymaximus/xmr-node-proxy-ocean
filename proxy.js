@@ -1041,12 +1041,10 @@ function activateHTTP() {
 				}
 				res.end();
 			});
-		} else if(req.url.substring(0, 5) == "/pools") {
+		} else if(req.url.substring(0, 6) == "/pools") {
 			fs.readFile('pools.json', 'utf8', (err, data) => {
 				if(err) {
-					//res.writeHead(503);
-					res.writeHead(200, {'Content-type':'application/json'});
-					res.write("{}\r\n");					
+					res.writeHead(503);
 				} else {
 					res.writeHead(200, {'Content-type':'application/json'});
 					res.write(data + "\r\n");
