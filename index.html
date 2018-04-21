@@ -135,7 +135,7 @@ function parseJSONPools(json) {
                         delete pool.devPool;
                 }
                 keys = Object.keys(pool);
-c               if (! keys || ! keys.length) continue;
+                if (! keys || ! keys.length) continue;
                 for(var j = 0; j < keys.length; j++) {
                         poolName = keys[j];
                         poolRow = pool[poolName];
